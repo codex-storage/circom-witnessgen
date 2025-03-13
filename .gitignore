@@ -1,0 +1,6 @@
+.DS_Store
+*.hi
+*.o
+tmp/
+build/
+.ghc.environment.*
