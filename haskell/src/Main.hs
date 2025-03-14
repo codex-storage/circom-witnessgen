@@ -8,8 +8,11 @@ import qualified Data.Map as Map
 
 import Witness
 import Parser
+import Graph
+import JSON
 
 --------------------------------------------------------------------------------
+{-
 
 (~>) :: String -> a -> (String, a)
 (~>) = (,)
@@ -22,13 +25,15 @@ testInputs = Map.fromList
   , "b" ~> [0xff02]
   ]
 
+-}
 --------------------------------------------------------------------------------
 
 main :: IO ()
 main = do
-  Right graph <- parseGraphFile "../tmp/graph2.bin"
+  Right graph <- parseGraphFile "../../tmp/graph4.bin"
   putStrLn ""
-  print graph
-  let wtns = witnessCalc testInputs graph
+  inputs <- loadInputJsonFile "../../tmp/input4.json"
+  print (inputSignals $ graphMeta graph)
+  let wtns = witnessCalc inputs graph
   putStrLn ""
   print wtns
