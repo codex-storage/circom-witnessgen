@@ -10,6 +10,7 @@ import Witness
 import Parser
 import Graph
 import JSON
+import Export
 
 --------------------------------------------------------------------------------
 {-
@@ -28,12 +29,17 @@ testInputs = Map.fromList
 -}
 --------------------------------------------------------------------------------
 
+graphFile = "../../tmp/graph4.bin"
+inputFile = "../../tmp/input4.json"
+wtnsFile  = "../../tmp/my4.wtns"
+
 main :: IO ()
 main = do
-  Right graph <- parseGraphFile "../../tmp/graph4.bin"
+  Right graph <- parseGraphFile graphFile
   putStrLn ""
-  inputs <- loadInputJsonFile "../../tmp/input4.json"
+  inputs <- loadInputJsonFile inputFile
   print (inputSignals $ graphMeta graph)
   let wtns = witnessCalc inputs graph
-  putStrLn ""
-  print wtns
+  -- putStrLn ""
+  -- print wtns
+  exportWitness wtnsFile wtns

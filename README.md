@@ -22,7 +22,7 @@ Compiler (in Haskell):
 - [x] parsing the graph file
 - [x] parsing json input
 - [x] naive interpreter
-- [ ] exporting the witness
+- [x] exporting the witness
 - [ ] constantine backend
 - [ ] zikkurat backend
 - [ ] arkworks backend
