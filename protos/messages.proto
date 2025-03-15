@@ -28,6 +28,8 @@ enum DuoOp {
 enum UnoOp {
     Neg = 0;
     Id = 1;
+    Lnot = 2;
+    Bnot = 3;
 }
 
 enum TresOp {
