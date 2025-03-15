@@ -18,6 +18,8 @@ data PrimOp a
   -- unary
   = Neg  a
   | Id   a
+  | Lnot a
+  | Bnot a
   -- binary
   | Mul  a a
   | Div  a a
@@ -49,6 +51,8 @@ evalPrimOp :: PrimOp F -> F
 evalPrimOp prim = case prim of
   Neg  x     -> neg x
   Id   x     -> x
+  Lnot x     -> fromBool (not (toBool x))
+  Bnot x     -> toF (fieldMask .&. (negate (fromF x) - 1)) 
   Mul  x y   -> mul x y
   Div  x y   -> BN254.div x y
   Add  x y   -> add x y

@@ -22,6 +22,8 @@ data Graph = Graph
 data UnoOp
   = Neg       -- ^ @= 0@
   | Id        -- ^ @= 1@
+  | Lnot      -- ^ @= 2@
+  | Bnot      -- ^ @= 3@
   deriving (Eq,Enum,Bounded,Show)
 
 data DuoOp 
