@@ -38,7 +38,8 @@ const I32    : byte = 5
 proc parseProtoField(buf: openArray[byte], p: var int, expected: byte): int = 
   let b = buf[p]
   p = p+1
-  assert expected == bitand(b,7)
+  let wire = bitand(b,7)
+  assert( expected == wire , "unexpected protobuf wire type " & ($wire) & " - expected " & ($expected) )
   return int(b shr 3)
 
 proc leBytesToHex(bytes: openArray[byte]): string =
@@ -71,12 +72,12 @@ proc parseConstantNode(buf: openArray[byte]): Node[uint32] =
   var p = 0
 
   let fld = buf.parseProtoField(p, LEN)
-  assert fld == 1
+  assert( fld == 1 , "expecting protobuf field id 1")
   let l = buf.parseVarInt(p)
 
   # protobuf is stupid, it's like triple wrapped
   let fld2 = buf.parseProtoField(p, LEN)
-  assert fld2 == 1
+  assert( fld2 == 1 , "expecting protobuf field id 1")
   let l2 = buf.parseVarInt(p)
 
   var bytes: seq[byte] = newSeq[byte](l2)
@@ -118,7 +119,7 @@ proc parseNode(buf: openArray[byte], p: var int): Node[uint32] =
     of 3: node = bytes.parseUnoOpNode()
     of 4: node = bytes.parseDuoOpNode()
     of 5: node = bytes.parseTresOpNode()
-    else: assert false
+    else: assert( false , "invalid node type " & ($fld) )
   # echo ($node)
   p = nextp
   return node
@@ -128,7 +129,7 @@ proc parseNode(buf: openArray[byte], p: var int): Node[uint32] =
 proc parseWitnessMapping(buf: openArray[byte], p: var int): seq[uint32] = 
 
   let fld = buf.parseProtoField(p, LEN)
-  assert fld == 1
+  assert( fld == 1 , "expecting protobuf field id 1")
   let l = buf.parseVarInt(p)
   let nextp = p + l
 
@@ -143,7 +144,7 @@ proc parseWitnessMapping(buf: openArray[byte], p: var int): seq[uint32] =
 proc parseSignalDescription(buf: openArray[byte], p: var int): SignalDescription = 
 
   let fld = buf.parseProtoField(p, LEN)
-  assert fld == 2
+  assert( fld == 2 , "expecting protobuf field id 2")
   let ln  = buf.parseVarInt(p)
   let nextp = p + ln
  
@@ -168,7 +169,7 @@ proc bytesToString(bytes: openarray[byte]): string =
 proc parseSignalName(buf: openArray[byte], p: var int): string=
 
   let fld1 = buf.parseProtoField(p, LEN)
-  assert fld1 == 1
+  assert( fld1 == 1 , "expecting protobuf field id 1")
   let len1 = buf.parseVarInt(p)
   let nextp1 = p + len1
 
@@ -181,7 +182,7 @@ proc parseSignalName(buf: openArray[byte], p: var int): string=
 proc parseCircuitInput(buf: openArray[byte], p: var int): (string, SignalDescription) =
 
   let fld = buf.parseProtoField(p, LEN)
-  assert fld == 2
+  assert( fld == 2 , "expecting protobuf field id 2")
   let l = buf.parseVarInt(p)
   let nextp = p + l
 
@@ -213,7 +214,7 @@ proc parseGraph*(buf: openArray[byte]): Graph =
 
   let magic  = "wtns.graph.001" 
   for i in 0..<magic.len:
-    assert ord(magic[i]) == int(buf[i])
+    assert( ord(magic[i]) == int(buf[i]) , "invalid magic string" )
   p += magic.len
 
   var nnodes: uint64 = buf.parseUint64(p)
@@ -236,7 +237,7 @@ proc loadGraph*(fname: string): Graph=
   let fileSize = f.getFileSize()
   var bytes: seq[byte] = newSeq[byte](fileSize)
   let amountRead = f.readBytes(bytes, 0, filesize)
-  assert amountRead == fileSize
+  assert( amountRead == fileSize , "couldn't read the whole graph file")
   f.close()
   let graph = parseGraph(bytes)
   return graph
