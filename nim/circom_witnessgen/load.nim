@@ -7,13 +7,13 @@ import ./graph
 #-------------------------------------------------------------------------------
 
 proc parseVarUint64(buf: openArray[byte], p: var int): uint64 =
-  let x = buf[p]
+  let x : uint8 = uint8(buf[p])
   p += 1
   if x < 128:
     return uint64(x)
   else:
     let y = buf.parseVarUint64(p)
-    return uint64(x - 128) + (y shl 7)
+    return uint64(bitand(x, 0x7f)) + (y shl 7)
 
 proc parseVarUint32(buf: openArray[byte], p: var int): uint32 =
   return uint32( parseVarUint64(buf,p) )
@@ -64,7 +64,7 @@ proc parseGenericNode(buf: openArray[byte]): seq[uint32] =
 proc parseInputNode(buf: openArray[byte]): Node[uint32] =
   # echo "InputNode"
   let values = parseGenericNode(buf)
-  let node: InputNode[uint32] = InputNode[uint32](idx: values[1])
+  let node: InputNode = InputNode(idx: values[1])
   return Node[uint32](kind: Input, inp: node)
 
 proc parseConstantNode(buf: openArray[byte]): Node[uint32] =
@@ -84,7 +84,7 @@ proc parseConstantNode(buf: openArray[byte]): Node[uint32] =
   for i in 0..<l2: bytes[i] = buf[p+i]
   # echo leBytesToHex(bytes)
 
-  let node: ConstantNode = ConstantNode(BigUInt(bytes))
+  let node: ConstantNode = ConstantNode(bigVal: BigUInt(bytes: bytes))
   return Node[uint32](kind: Const, kst: node)
 
 proc parseUnoOpNode(buf: openArray[byte]): Node[uint32] =
@@ -205,7 +205,7 @@ proc parseMeta(buf: openArray[byte]): GraphMetaData =
     let entry = buf.parseCircuitInput(p)
     entries.add(entry)
 
-  return GraphMetaData(witnessMapping: WitnessMapping(mapping), inputSignals: entries)
+  return GraphMetaData(witnessMapping: WitnessMapping(mapping: mapping), inputSignals: entries)
 
 #-------------------------------------------------------------------------------
 

@@ -4,11 +4,9 @@ import std/json
 import std/tables
 
 import ./field
+import ./graph
 
 #-------------------------------------------------------------------------------
-
-type 
-  Inputs* = Table[string, seq[F]]
 
 proc printInputs*(inputs: Inputs) = 
   for key, list in pairs(inputs):

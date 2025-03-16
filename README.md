@@ -31,8 +31,9 @@ Nim witness generator (to be used with [`nim-groth16`](https://github.com/codex-
 
 - [x] parsing the graph file
 - [x] parsing json input
-- [ ] generating the witness
-- [ ] exporting the witness
+- [x] generating the witness
+- [x] exporting the witness
+- [ ] support the complete set of operations
 - [ ] proper error handling
 
 ### Testing & correctness

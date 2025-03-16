@@ -39,6 +39,11 @@ proc writeHeader(s: Stream, witnessLen: int) =
 
 #-------------------------------------------------------------------------------
 
+proc exportFeltSequence*(filepath: string, values: seq[F]) = 
+  var stream = newFileStream(filepath, fmWrite)
+  for i in 0..<values.len:
+    stream.writeFelt( values[i] )
+
 proc exportWitness*(filepath: string, witness: seq[F]) = 
   var stream = newFileStream(filepath, fmWrite)
   stream.writeHeader(witness.len) 
