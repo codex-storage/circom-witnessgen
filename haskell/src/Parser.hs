@@ -70,7 +70,7 @@ readGraphFile h = do
     else do
       hSeekInt h (flen - 8)
       offset <- (fromIntegral . runGet getWord64le) <$> hGetBytes h 8
-      putStrLn $ "metadata offset = " ++ show offset
+      -- putStrLn $ "metadata offset = " ++ show offset
       if (offset >= flen) || (offset <= 18)
         then return $ Left "invalid final `graphMetaData` offset bytes"
         else do

@@ -15,31 +15,42 @@ import BN254
 import qualified Semantics as S ; import Semantics ( PrimOp , evalPrimOp )
 import qualified Graph     as G ; import Graph     ( Graph(..) , Node(..) , UnoOpNode(..) , DuoOpNode(..) , TresOpNode(..) , SignalDescription(..) ) 
 
+import Debug.Trace
+debug msg x y = trace (">>> " ++ msg ++ " ~> " ++ show x) y
+
 --------------------------------------------------------------------------------
 
-type Witness = Array Int F
+newtype Witness = MkWitness (Array Int F)
 
 type Inputs = Map String [Integer]
 
-witnessCalc :: Inputs -> Graph -> Witness
-witnessCalc inputs (Graph nodes meta) = witness where
+-- | This includes all temporary values (one per graph node), not all of which is
+-- present in the final witness
+fullComputation :: Graph -> Inputs -> Array Int F 
+fullComputation (Graph nodes meta) inputs = rawWitness where
   nodesArr   = listArray (0,length nodes-1) nodes
   rawWitness = evaluateNodes rawInputs nodesArr
   rawInputs  = convertInputs (G.inputSignals meta) inputs 
+
+fullLogToWitness :: Graph -> Array Int F -> Witness
+fullLogToWitness (Graph nodes meta) fullLog = MkWitness witness where
   mapping_   = G.fromWitnessMapping (G.witnessMapping meta)
   wtnslen    = length mapping_
   mapping    = listArray (0,wtnslen-1) mapping_
-  witness    = listArray (0,wtnslen-1) $ [ rawWitness!(fromIntegral (mapping!i)) | i<-[0..wtnslen-1] ]
+  witness    = listArray (0,wtnslen-1) $ [ fullLog!(fromIntegral (mapping!i)) | i<-[0..wtnslen-1] ]
+
+witnessCalc :: Graph -> Inputs -> Witness
+witnessCalc graph inputs = fullLogToWitness graph (fullComputation graph inputs)
 
 convertInputs :: [(String,SignalDescription)] -> Map String [Integer] -> IntMap F
-convertInputs descTable inputTable = IntMap.fromList $ concatMap f descTable where
+convertInputs descTable inputTable = IntMap.fromList $ (0,1) : concatMap f descTable where
   f :: (String,SignalDescription) -> [(Int,F)]
   f (name,desc) = case Map.lookup name inputTable of
     Nothing     -> error $ "input signal `" ++ name ++ "` not found in the given inputs!"
     Just values -> if length values /= fromIntegral (signalLength desc)
       then error $ "input signal `" ++ name ++ "` has incorrect size"
       else let ofs = fromIntegral (signalOffset desc) :: Int
-           in  (0,1) : zip [ofs..] (map toF values)
+           in  zip [ofs..] (map toF values)
 
 --------------------------------------------------------------------------------
 
@@ -79,7 +90,7 @@ duoToPrimOp (DuoOpNode op arg1 arg2) = case op of
   G.Mul  -> S.Mul  arg1 arg2
   G.Div  -> S.Div  arg1 arg2
   G.Add  -> S.Add  arg1 arg2
-  G.Sub  -> S.Sub  arg1 arg2
+  G.Sub  -> S.Sub  arg1 arg2     -- debug "sub " (op,arg1,arg2) $ 
   G.Pow  -> S.Pow  arg1 arg2
   G.Idiv -> S.Idiv arg1 arg2
   G.Mod  -> S.Mod  arg1 arg2

@@ -32,14 +32,19 @@ testInputs = Map.fromList
 graphFile = "../../tmp/graph4.bin"
 inputFile = "../../tmp/input4.json"
 wtnsFile  = "../../tmp/my4.wtns"
+fullFile  = "../../tmp/my4_full.bin"
 
 main :: IO ()
 main = do
-  Right graph <- parseGraphFile graphFile
-  putStrLn ""
-  inputs <- loadInputJsonFile inputFile
-  print (inputSignals $ graphMeta graph)
-  let wtns = witnessCalc inputs graph
+  Right graph <- parseGraphFile    graphFile
+  inputs      <- loadInputJsonFile inputFile
+
   -- putStrLn ""
-  -- print wtns
+  -- print (inputSignals $ graphMeta graph)
+
+  -- let full = fullComputation graph inputs
+  -- exportFeltSequence fullFile full
+
+  let wtns = witnessCalc graph inputs 
   exportWitness wtnsFile wtns
+

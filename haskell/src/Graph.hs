@@ -4,6 +4,7 @@ module Graph where
 
 --------------------------------------------------------------------------------
 
+import Control.Monad
 import Text.Printf
 
 --------------------------------------------------------------------------------
@@ -102,5 +103,23 @@ data GraphMetaData = GraphMetaData
   , inputSignals   :: CircuitInputs  
   }
   deriving (Show)
+
+--------------------------------------------------------------------------------
+
+debugPrintGraph :: Graph -> IO ()
+debugPrintGraph (Graph nodes meta) = do
+  forM_ (zip [0..] nodes) $ \(i,node) -> do
+    putStrLn $ show i ++ " -> " ++ showNode node
+
+showNode :: Node -> String
+showNode node = case node of
+  AnInputNode    node -> show node
+  AConstantNode  node -> show node
+  AnUnoOpNode    node -> show node
+  ADuoOpNode     node -> show node
+  ATresOpNode    node -> show node
+
+printNode :: Node -> IO ()
+printNode = putStrLn . showNode
 
 --------------------------------------------------------------------------------

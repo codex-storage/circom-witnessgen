@@ -21,8 +21,13 @@ import Witness
 --------------------------------------------------------------------------------
 
 exportWitness :: FilePath -> Witness -> IO ()
-exportWitness fpath ws = do
+exportWitness fpath (MkWitness ws) = do
   let bs = runPut (putWitness ws)
+  L.writeFile fpath bs
+
+exportFeltSequence :: FilePath -> Array Int F -> IO ()
+exportFeltSequence fpath arr = do
+  let bs = runPut $ putRawWitness (elems arr)
   L.writeFile fpath bs
 
 --------------------------------------------------------------------------------
