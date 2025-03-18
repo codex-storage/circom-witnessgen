@@ -149,7 +149,7 @@ func evalDuoOpNode(op: DuoOp, x: F, y: F): F =
     of Div:  return if isZeroF(y): zeroF else: x / y
     of Add:  return x + y
     of Sub:  return x - y
-    of Pow:  assert( false, "Pow: not yet implemented"  )
+    of Pow:  return powF(x, fToBig(y))                      # assert( false, "Pow: not yet implemented"  )
     of Idiv: assert( false, "Idiv: not yet implemented" )   # return bigToF( fToBig(x) div fToBig(y) )
     of Mod:  assert( false, "Mod: not yet implemented"  )   # return bigToF( fToBig(x) mod fToBig(y) )
     of Eq:   return boolToF( x === y )

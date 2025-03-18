@@ -89,4 +89,9 @@ func `-`*(x, y: F ): F  =  ( var z : F = x ; z -= y ; return z )
 func `*`*(x, y: F ): F  =  ( var z : F = x ; z *= y ; return z )
 func `/`*(x, y: F ): F  =  ( var z : F = x ; z *= invF(y) ; return z )
 
+func powF*(x: F, y: B): F = 
+  var z: F = x
+  z.pow_vartime(y)
+  return z
+
 #-------------------------------------------------------------------------------
