@@ -26,13 +26,18 @@ you won't need to ship a binary graph file.
 
 ### Implementation status
 
-Compiler (in Haskell):
+Haskell witness generator:
 
 - [x] parsing the graph file
 - [x] parsing json input
 - [x] naive interpreter
 - [x] exporting the witness
 - [ ] Cabalize
+- [ ] refactor the parser to be nicer
+- [ ] use high-performance algebra
+
+Haskell compiler:
+
 - [ ] constantine backend
 - [ ] zikkurat backend
 - [ ] arkworks backend
@@ -49,6 +54,11 @@ Nim witness generator (to be used with [`nim-groth16`](https://github.com/codex-
 ### Testing & correctness
 
 I haven't yet done any proper testing, apart from "works for our purposes".
+
+Known bugs:
+
+ - comparison ignores the "signed" semantics of circom
+ - integer division and modulo is not implemented
 
 ### Circuit optimizations
 
