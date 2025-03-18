@@ -13,7 +13,16 @@ The biggest one is that it doesn't support any kind of dynamic computation (whic
 be obvious from the fact that it produces a static graph). But even if one uses only 
 static computations, there are further very annoying things which just don't work.
 
-However at the end this is still a useful thing.
+However at the end this is still a useful thing, as many circuits still work.
+
+### Compiler
+
+Not sure how useful the compiler idea is after all, instead of interpreting the graph
+directly. For large(r) circuits you will have millions of function calls, which
+may strain the target language's compiler.
+
+The main advantage seems to be that you don't have to re-implement the parser, and
+you won't need to ship a binary graph file.
 
 ### Implementation status
 
@@ -23,6 +32,7 @@ Compiler (in Haskell):
 - [x] parsing json input
 - [x] naive interpreter
 - [x] exporting the witness
+- [ ] Cabalize
 - [ ] constantine backend
 - [ ] zikkurat backend
 - [ ] arkworks backend
