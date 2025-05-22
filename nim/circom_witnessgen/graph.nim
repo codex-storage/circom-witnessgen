@@ -61,7 +61,7 @@ type
     arg1*: T
     arg2*: T
 
-  TresOpNode*[T] = object 
+  TresOpNode*[T] = object
     op*: TresOp
     arg1*: T
     arg2*: T
@@ -88,7 +88,7 @@ type
 
   GraphMetaData* = object
     witnessMapping*: WitnessMapping
-    inputSignals*:   CircuitInputs  
+    inputSignals*:   CircuitInputs
 
   Graph* = object
     nodes*: seq[Node[uint32]]
@@ -101,7 +101,7 @@ func unwrapBigUInt*(x: BigUInt): seq[byte] = x.bytes
 func bigFromBigUInt*(big: BigUInt): B =
   let bytes = unwrapBigUInt(big)
   var buf: seq[byte] = newSeq[byte](32)
-  for i, x in bytes.pairs(): 
+  for i, x in bytes.pairs():
     buf[i] = x
   var output : B
   unmarshal(output, buf, littleEndian)
@@ -112,16 +112,16 @@ func fromBigUInt*(big: BigUInt): F =
 
 #-------------------------------------------------------------------------------
 
-proc fmapUno[S,T]( fun: (S) -> T , node: UnoOpNode[S]): UnoOpNode[T] = 
+proc fmapUno[S,T]( fun: ((S) {.gcsafe.} -> T) , node: UnoOpNode[S]): UnoOpNode[T] =
   UnoOpNode[T]( op: node.op, arg1: fun(node.arg1) )
 
-proc fmapDuo[S,T]( fun: (S) -> T , node: DuoOpNode[S]): DuoOpNode[T] = 
+proc fmapDuo[S,T]( fun: ((S) {.gcsafe.} -> T) , node: DuoOpNode[S]): DuoOpNode[T] =
   DuoOpNode[T]( op: node.op, arg1: fun(node.arg1), arg2: fun(node.arg2) )
 
-proc fmapTres[S,T]( fun: (S) -> T , node: TresOpNode[S]): TresOpNode[T] = 
+proc fmapTres[S,T]( fun: ((S) {.gcsafe.} -> T) , node: TresOpNode[S]): TresOpNode[T] =
   TresOpNode[T]( op: node.op, arg1: fun(node.arg1), arg2: fun(node.arg2), arg3: fun(node.arg3) )
 
-proc fmap* [S,T]( fun: (S) -> T , node: Node[S]): Node[T] = 
+proc fmap* [S,T]( fun: ((S) {.gcsafe.} -> T) , node: Node[S]): Node[T] =
   case node.kind:
     of Input: Node[T](kind: Input , inp:  node.inp )
     of Const: Node[T](kind: Const , kst:  node.kst )
@@ -131,7 +131,7 @@ proc fmap* [S,T]( fun: (S) -> T , node: Node[S]): Node[T] =
 
 #-------------------------------------------------------------------------------
 
-proc showNodeUint32*( node: Node[uint32] ): string = 
+proc showNodeUint32*( node: Node[uint32] ): string =
   case node.kind:
     of Input: "Input idx=" & ($node.inp.idx)
     of Const: "Const kst=" & bigToDecimal(bigFromBigUInt(node.kst.bigVal))
