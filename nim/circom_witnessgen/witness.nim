@@ -1,4 +1,6 @@
 
+{.push raises: [].}
+
 import std/tables
 import std/strformat
 
@@ -15,7 +17,7 @@ proc expandInputs*(circuitInputs: seq[(string, SignalDescription)] , inputs: Inp
     let k: int = int(desc.length)
     let o: int = int(desc.offset)
     assert( inputs.hasKey(key) , "input signal `" & key & "` not present" )
-    let list: seq[F] = inputs[key]
+    let list: seq[F] = try: inputs[key] except KeyError as exc: raiseAssert(exc.msg)
     assert( list.len == k , "input signal `" & key & "` has unexpected size" )
     for i in 0..<k:
       table[o + i] = list[i]
@@ -23,7 +25,7 @@ proc expandInputs*(circuitInputs: seq[(string, SignalDescription)] , inputs: Inp
   return table
 
 # note: this contains temporary values which are not present in the actual witness
-proc generateFullComputation*(graph: Graph, inputs: Inputs): seq[F] {.gcsafe.} =
+proc generateFullComputation*(graph: Graph, inputs: Inputs): seq[F] {.gcsafe, raises: [KeyError].} =
 
   let sequence      : seq[Node[uint32]]                = graph.nodes
   let graphMeta     : GraphMetaData                    = graph.meta
@@ -57,7 +59,7 @@ proc generateFullComputation*(graph: Graph, inputs: Inputs): seq[F] {.gcsafe.} =
       echo " "
 ]#
 
-proc generateWitness*(graph: Graph, inputs: Inputs): seq[F] {.gcsafe.} =
+proc generateWitness*(graph: Graph, inputs: Inputs): seq[F] {.gcsafe, raises: [KeyError].} =
   let mapping: seq[uint32] = graph.meta.witnessMapping.mapping
   let pre_witness = generateFullComputation(graph, inputs)
   var output: seq[F] = newSeq[F](mapping.len)

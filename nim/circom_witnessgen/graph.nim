@@ -112,16 +112,16 @@ func fromBigUInt*(big: BigUInt): F =
 
 #-------------------------------------------------------------------------------
 
-proc fmapUno[S,T]( fun: ((S) {.gcsafe.} -> T) , node: UnoOpNode[S]): UnoOpNode[T] =
+proc fmapUno[S,T]( fun: ((S) {.raises: [], gcsafe.} -> T) , node: UnoOpNode[S]): UnoOpNode[T] =
   UnoOpNode[T]( op: node.op, arg1: fun(node.arg1) )
 
-proc fmapDuo[S,T]( fun: ((S) {.gcsafe.} -> T) , node: DuoOpNode[S]): DuoOpNode[T] =
+proc fmapDuo[S,T]( fun: ((S) {.raises: [], gcsafe.} -> T) , node: DuoOpNode[S]): DuoOpNode[T] =
   DuoOpNode[T]( op: node.op, arg1: fun(node.arg1), arg2: fun(node.arg2) )
 
-proc fmapTres[S,T]( fun: ((S) {.gcsafe.} -> T) , node: TresOpNode[S]): TresOpNode[T] =
+proc fmapTres[S,T]( fun: ((S) {.raises: [], gcsafe.} -> T) , node: TresOpNode[S]): TresOpNode[T] =
   TresOpNode[T]( op: node.op, arg1: fun(node.arg1), arg2: fun(node.arg2), arg3: fun(node.arg3) )
 
-proc fmap* [S,T]( fun: ((S) {.gcsafe.} -> T) , node: Node[S]): Node[T] =
+proc fmap* [S,T]( fun: ((S) {.raises: [], gcsafe.} -> T) , node: Node[S]): Node[T] =
   case node.kind:
     of Input: Node[T](kind: Input , inp:  node.inp )
     of Const: Node[T](kind: Const , kst:  node.kst )
