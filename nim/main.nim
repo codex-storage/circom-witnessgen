@@ -1,4 +1,7 @@
 
+import circom_witnessgen/field
+# import circom_witnessgen/div_mod
+
 import circom_witnessgen/load
 import circom_witnessgen/input_json
 import circom_witnessgen/witness
@@ -12,6 +15,13 @@ const wtns_file:  string = "../tmp/nim3.wtns"
 
 #-------------------------------------------------------------------------------
 
+#[
+when isMainModule:
+
+  debugDivMod()  
+  # divModSanityCheck()
+]#
+
 when isMainModule:
 
   echo "loading in " & input_file
@@ -20,8 +30,9 @@ when isMainModule:
 
   echo "loading in " & graph_file
   let gr = loadGraph(graph_file)
-  # echo $gr
+  echo $gr
 
   echo "generating witness"
   let wtns = generateWitness( gr, inp )
   exportWitness(wtns_file, wtns)
+

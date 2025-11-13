@@ -86,9 +86,14 @@ type
 
   CircuitInputs* = seq[(string, SignalDescription)]
 
+  Prime* = object
+    primeNumber*: BigUInt
+    primeName*:   string
+
   GraphMetaData* = object
     witnessMapping*: WitnessMapping
     inputSignals*:   CircuitInputs  
+    prime*: Prime
 
   Graph* = object
     nodes*: seq[Node[uint32]]

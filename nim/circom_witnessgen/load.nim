@@ -195,17 +195,46 @@ proc parseCircuitInput(buf: openArray[byte], p: var int): (string, SignalDescrip
   p = nextp
   return (name,desc)
 
+proc parsePrime(buf: openArray[byte], p: var int): Prime = 
+
+  # prime number (BigUInt)
+  let fld1 = buf.parseProtoField(p, LEN)
+  assert( fld1 == 3 , "expecting protobuf field id 3")
+  let len1 = buf.parseVarInt(p)
+  let nextp1 = p + len1
+  # protobuf is stupid, it's like triple wrapped
+  let fld1b = buf.parseProtoField(p, LEN)
+  assert( fld1b == 1 , "expecting protobuf field id 1")
+  let len1b = buf.parseVarInt(p)
+  var bytes: seq[byte] = newSeq[byte](len1b)
+  for i in 0..<len1b: bytes[i] = buf[p+i]
+  let number = BigUInt(bytes: bytes)
+  p = nextp1
+
+  # prime name (string)
+  let fld2 = buf.parseProtoField(p, LEN)
+  assert( fld2 == 4 , "expecting protobuf field id 4")
+  let len2 = buf.parseVarInt(p)
+  let nextp2 = p + len2
+  let bs = buf[p..<p+len2]
+  let name = bytesToString(bs)
+  p = nextp2
+ 
+  return Prime(primeNumber: number, primeName: name)
+
 proc parseMeta(buf: openArray[byte]): GraphMetaData = 
   var p: int = 0
 
   let mapping = buf.parseWitnessMapping(p)
 
   var entries: seq[(string, SignalDescription)] = newSeq[(string, SignalDescription)](0)
-  while(p < buf.len):
+  while(p < buf.len and buf[p]==0x12):
     let entry = buf.parseCircuitInput(p)
     entries.add(entry)
 
-  return GraphMetaData(witnessMapping: WitnessMapping(mapping: mapping), inputSignals: entries)
+  let prime = buf.parsePrime(p)
+
+  return GraphMetaData(witnessMapping: WitnessMapping(mapping: mapping), inputSignals: entries, prime: prime)
 
 #-------------------------------------------------------------------------------
 
