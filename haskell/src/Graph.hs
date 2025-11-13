@@ -59,6 +59,9 @@ data TresOp
 newtype BigUInt 
   = BigUInt [Word8]      -- ^ little endian
 
+dummyBigUInt :: BigUInt
+dummyBigUInt = BigUInt [0]
+
 showBigUInt :: BigUInt -> String
 showBigUInt (BigUInt bytes) = "0x" ++ concatMap f (reverse bytes) where
   f :: Word8 -> String
@@ -98,9 +101,16 @@ newtype WitnessMapping
 
 type CircuitInputs = [(String, SignalDescription)]
 
+data Prime = Prime
+  { primeNumber  :: !BigUInt
+  , primeName    :: !String
+  }
+  deriving (Show)
+
 data GraphMetaData = GraphMetaData 
   { witnessMapping :: WitnessMapping
   , inputSignals   :: CircuitInputs  
+  , prime          :: Prime
   }
   deriving (Show)
 

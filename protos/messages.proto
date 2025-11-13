@@ -84,4 +84,6 @@ message SignalDescription {
 message GraphMetadata {
   repeated uint32 witnessSignals = 1;
   map<string, SignalDescription> inputs = 2;
+  BigUInt prime = 3;
+  string prime_str = 4;
 }

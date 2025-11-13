@@ -15,11 +15,12 @@ import Control.Monad
 import Control.Applicative
 import System.IO
 
-import Data.ByteString.Lazy (ByteString) 
+import Data.ByteString.Lazy ( ByteString ) 
 import qualified Data.ByteString.Lazy       as L
 import qualified Data.ByteString.Lazy.Char8 as LC
 
 import "binary" Data.Binary.Get
+import "binary" Data.Binary.Get.Internal ( lookAhead )
 import "binary" Data.Binary.Builder as Builder
 
 import Graph
@@ -109,6 +110,10 @@ varUInt = fromIntegral <$> varInt'
 
 --------------------------------------------------------------------------------
 
+expectingError :: Int -> String -> Int -> Get a
+expectingError actual what shouldbe = do
+  error $ what ++ ": expecting field " ++ show shouldbe ++ "; got " ++ show actual ++ " instead" 
+
 getNodes :: Get [Node]
 getNodes = do
   n <- getWord64le 
@@ -144,25 +149,38 @@ getConstantNode = do
   bs   <- getLazyByteString (fromIntegral len)
   return $ ConstantNode (runGet getBigUInt bs)
 
-getBigUInt :: Get BigUInt
-getBigUInt = do
+getBigUInt' :: FieldId -> Get BigUInt
+getBigUInt' expectedId = do
   fld <- getFieldId LEN
-  if fld /= 1 
-    then error "getBigUInt"
+  if fld /= expectedId
+    then expectingError fld "getBigUInt" expectedId
     else do
       len <- varInt
       bs  <- getLazyByteString (fromIntegral len)
       return $ BigUInt (runGet getByteList bs)
 
+getBigUInt ::Get BigUInt
+getBigUInt = getBigUInt' 1
+
 getByteList :: Get [Word8]
 getByteList = do
   fld <- getFieldId LEN
   if fld /= 1 
-    then error "getByteList"
+    then expectingError fld "getByteList" 1
     else do
       len <- varInt
       bs  <- getLazyByteString (fromIntegral len)
       return (L.unpack bs)
+
+getString' :: FieldId -> Get String
+getString' expectedId = do
+  fld <- getFieldId LEN 
+  if fld /= expectedId
+    then expectingError fld "getString" expectedId
+    else do
+      len <- varInt
+      bs  <- getLazyByteString (fromIntegral len)
+      return (LC.unpack bs)
 
 getUnoOpNode :: Get UnoOpNode
 getUnoOpNode = do
@@ -220,13 +238,23 @@ getMetaData = do
   len <- varInt
   mapping <- getWitnessMapping
   inputs  <- getCircuitInputs
-  return $ GraphMetaData mapping inputs
+  prime   <- getPrime
+  return $ GraphMetaData mapping inputs prime
+
+getPrime :: Get Prime
+getPrime = do
+  number <- getBigUInt' 3
+  name   <- getString'  4
+  return $ Prime
+    { primeNumber = number
+    , primeName   = name
+    }
 
 getWitnessMapping :: Get WitnessMapping
 getWitnessMapping = do
   fld <- getFieldId LEN 
   if fld /= 1 
-    then error "getWitnessMapping: expecting field 1"
+    then expectingError fld "getWitnessMapping" 1
     else do
       len <- varInt
       bs  <- getLazyByteString (fromIntegral len)
@@ -240,20 +268,30 @@ getWitnessMapping = do
 getCircuitInputs :: Get CircuitInputs
 getCircuitInputs = worker where
 
+{-
   worker :: Get [(String, SignalDescription)]
   worker = isEmpty >>= \b -> if b 
     then return [] 
     else (:) <$> getSingleInput <*> worker
+-}
 
-  getSingleInput :: Get (String, SignalDescription)
+  worker :: Get [(String, SignalDescription)]
+  worker = do
+    mb <- getSingleInput 
+    case mb of
+      Nothing   -> return []
+      Just this -> (this:) <$> worker
+
+  getSingleInput :: Get (Maybe (String, SignalDescription))
   getSingleInput = do
-    fld <- getFieldId LEN 
+    fld <- lookAhead (getFieldId LEN)
     if fld /= 2
-      then error "getCircuitInputs: expecting field 2"
+      then return Nothing    -- expectingError fld "getSingleInput" 2
       else do
-        len <- varInt
-        bs  <- getLazyByteString (fromIntegral len)
-        return $ runGet inputHelper bs
+        _fld <- getFieldId LEN 
+        len  <- varInt
+        bs   <- getLazyByteString (fromIntegral len)
+        return $ Just $ runGet inputHelper bs
 
   inputHelper = do
     name   <- getName
@@ -264,7 +302,7 @@ getCircuitInputs = worker where
   getName = do
     fld <- getFieldId LEN 
     if fld /= 1
-      then error "getCircuitInputs/getName: expecting field 1"
+      then expectingError fld "getCircuitInputs/getName" 1
       else do
         len <- varInt
         bs  <- getLazyByteString (fromIntegral len)
@@ -274,7 +312,7 @@ getCircuitInputs = worker where
   getSignal = do
     fld <- getFieldId LEN 
     if fld /= 2
-      then error "getCircuitInputs/getSignal: expecting field 2"
+      then expectingError fld "getCircuitInputs/getSignal" 2
       else do
         len <- varInt
         bs  <- getLazyByteString (fromIntegral len)
@@ -288,13 +326,13 @@ getCircuitInputs = worker where
   getSignalOffset = do
     fld <- getFieldId VARINT
     if fld /= 1
-      then error "getCircuitInputs/getSignalOffset: expecting field 1"
+      then expectingError fld "getCircuitInputs/getSignalOffset" 1
       else varUInt
 
   getSignalLength = do
     fld <- getFieldId VARINT
     if fld /= 2
-      then error "getCircuitInputs/getSignalLength: expecting field 2"
+      then expectingError fld "getCircuitInputs/getSignalLength" 2
       else varUInt
 
 --------------------------------------------------------------------------------

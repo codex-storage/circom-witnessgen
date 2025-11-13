@@ -58,7 +58,7 @@ I haven't yet done any proper testing, apart from "works for our purposes".
 Known bugs:
 
  - comparison ignores the "signed" semantics of circom
- - integer division and modulo is not implemented
+ - integer division and modulo is not implemented (in the Nim version)
 
 ### Circuit optimizations
 
